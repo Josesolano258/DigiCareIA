@@ -1,5 +1,5 @@
 // netlify/functions/chat.js
-import fetch from "node-fetch";
+const fetch = globalThis.fetch; // usar fetch nativo de node
 
 export async function handler(event) {
   try {
@@ -11,10 +11,13 @@ export async function handler(event) {
 
     const OPENAI_KEY = process.env.OPENAI_API_KEY;
     if (!OPENAI_KEY) {
-      return { statusCode: 500, body: JSON.stringify({ error: "Missing OPENAI_API_KEY" }) };
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Missing OPENAI_API_KEY" })
+      };
     }
 
-    // ---------- 1) Pedir TEXTO ----------
+    // ---- 1) Pedir TEXTO ----
     const textResp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -24,27 +27,20 @@ export async function handler(event) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          {
-            role: "system",
-            content: "Eres una enfermera profesional, cálida, amable y empática."
-          },
-          {
-            role: "user",
-            content: message
-          }
+          { role: "system", content: "Eres una enfermera profesional, cálida y empática." },
+          { role: "user", content: message }
         ]
       })
     });
 
     if (!textResp.ok) {
-      const errTxt = await textResp.text();
-      return { statusCode: 500, body: JSON.stringify({ error: errTxt }) };
+      return { statusCode: 500, body: await textResp.text() };
     }
 
     const json = await textResp.json();
     const replyText = json?.choices?.[0]?.message?.content || "Aquí tienes tu respuesta.";
 
-    // ---------- 2) Pedir AUDIO ----------
+    // ---- 2) Pedir AUDIO ----
     const ttsResp = await fetch("https://api.openai.com/v1/audio/speech", {
       method: "POST",
       headers: {
@@ -59,8 +55,7 @@ export async function handler(event) {
     });
 
     if (!ttsResp.ok) {
-      const errTxt = await ttsResp.text();
-      return { statusCode: 500, body: JSON.stringify({ error: errTxt }) };
+      return { statusCode: 500, body: await ttsResp.text() };
     }
 
     const audioBinary = await ttsResp.arrayBuffer();
