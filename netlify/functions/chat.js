@@ -1,79 +1,113 @@
-// netlify/functions/chat.js
-const fetch = globalThis.fetch; // usar fetch nativo de node
+exports.handler = async (event, context) => {
+  // Headers para CORS
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
+  };
 
-export async function handler(event) {
+  // Manejar preflight requests
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
+
+  // Solo permitir POST
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Método no permitido' })
+    };
+  }
+
   try {
-    const { message } = JSON.parse(event.body || "{}");
+    // Parsear el body
+    const { messages, systemContext } = JSON.parse(event.body);
 
-    if (!message) {
-      return { statusCode: 400, body: JSON.stringify({ error: "No message provided" }) };
-    }
-
-    const OPENAI_KEY = process.env.OPENAI_API_KEY;
-    if (!OPENAI_KEY) {
+    // Validar que tenemos los datos necesarios
+    if (!messages || !Array.isArray(messages)) {
       return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "Missing OPENAI_API_KEY" })
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Formato de mensajes inválido' })
       };
     }
 
-    // ---- 1) Pedir TEXTO ----
-    const textResp = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
+    // Validar que tenemos la API key
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY no está configurada');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Configuración del servidor incompleta. Contacta al administrador.' })
+      };
+    }
+
+    // Llamar a la API de Anthropic
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_KEY}`
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "Eres una enfermera profesional, cálida y empática." },
-          { role: "user", content: message }
-        ]
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2048,
+        system: systemContext,
+        messages: messages
       })
     });
 
-    if (!textResp.ok) {
-      return { statusCode: 500, body: await textResp.text() };
+    // Verificar respuesta de Anthropic
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error de Anthropic API:', response.status, errorText);
+      
+      let errorMessage = 'Error al comunicarse con la IA';
+      if (response.status === 401) {
+        errorMessage = 'API Key inválida. Contacta al administrador.';
+      } else if (response.status === 429) {
+        errorMessage = 'Límite de solicitudes alcanzado. Intenta en unos minutos.';
+      }
+      
+      throw new Error(errorMessage);
     }
 
-    const json = await textResp.json();
-    const replyText = json?.choices?.[0]?.message?.content || "Aquí tienes tu respuesta.";
-
-    // ---- 2) Pedir AUDIO ----
-    const ttsResp = await fetch("https://api.openai.com/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini-tts",
-        voice: "alloy",
-        input: replyText
-      })
-    });
-
-    if (!ttsResp.ok) {
-      return { statusCode: 500, body: await ttsResp.text() };
+    const data = await response.json();
+    
+    // Validar que tenemos contenido
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+      throw new Error('Respuesta inválida de la IA');
     }
 
-    const audioBinary = await ttsResp.arrayBuffer();
-    const audioBase64 = Buffer.from(audioBinary).toString("base64");
+    const assistantMessage = data.content[0].text;
 
+    // Retornar respuesta exitosa
     return {
       statusCode: 200,
+      headers,
       body: JSON.stringify({
-        reply: replyText,
-        audioBase64
+        message: assistantMessage,
+        success: true
       })
     };
 
-  } catch (err) {
-    console.error("Function error:", err);
+  } catch (error) {
+    console.error('Error en función chat:', error);
+    
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message })
+      headers,
+      body: JSON.stringify({
+        error: error.message || 'Error al procesar la solicitud',
+        success: false
+      })
     };
   }
-}
+};

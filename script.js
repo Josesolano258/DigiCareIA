@@ -1,198 +1,298 @@
-/* script.js - frontend (chat + STT + TTS + animación avatar) */
+// ==================== VARIABLES GLOBALES ====================
+let conversationHistory = [];
+let isTyping = false;
 
-/* ====== CONFIG ====== */
-// Path del asset avatar (el path que subiste). En deploy lo mapearás a URL público.
-const AVATAR_SRC = "./avatar.png"; 
+const systemContext = `Eres un asistente de salud profesional, empático y confiable. Tu objetivo es proporcionar información médica precisa, clara y basada en evidencia científica.
 
-// IDs del HTML
-const chatMessages = document.getElementById("chatMessages");
-const userInput = document.getElementById("userInput");
-const sendBtn = document.getElementById("sendBtn");
-const typingIndicator = document.getElementById("typingIndicator");
+SIEMPRE:
+- Proporciona información basada en estudios y conocimiento médico actualizado
+- Usa un lenguaje claro, accesible y comprensible
+- Sé empático y muestra comprensión hacia las preocupaciones de salud
+- Recuerda a los usuarios consultar con profesionales de salud cuando sea necesario
+- Identifica emergencias y sugiere atención médica inmediata cuando corresponda
+- Explica conceptos médicos de forma simple
+- Proporciona información sobre síntomas, enfermedades, medicamentos, prevención y estilos de vida saludables
+- Responde SIEMPRE en español de manera natural y amigable
 
-// Construir la caja del avatar arriba del chat (si no existe)
-function ensureAvatarElement() {
-  let avatarEl = document.getElementById("aiAvatarImg");
-  if (!avatarEl) {
-    const header = document.querySelector(".chat-header");
-    if (!header) return;
-    const img = document.createElement("img");
-    img.id = "aiAvatarImg";
-    img.src = AVATAR_SRC;
-    img.alt = "Avatar MediAI";
-    img.style.width = "72px";
-    img.style.height = "72px";
-    img.style.borderRadius = "12px";
-    img.style.objectFit = "cover";
-    img.style.boxShadow = "0 6px 18px rgba(0,0,0,0.12)";
-    header.insertBefore(img, header.firstChild);
-  }
-}
-ensureAvatarElement();
+IMPORTANTE: 
+- NO eres un médico y tus respuestas son informativas, no diagnósticos médicos
+- Ante síntomas graves, SIEMPRE recomienda buscar atención médica inmediata
+- Si detectas una emergencia (dolor de pecho, dificultad para respirar, sangrado severo, etc.), indica que llamen al 123 inmediatamente`;
 
-/* ====== UTIL: mostrar mensajes ====== */
-function addMessage({ role = "assistant", text }) {
-  const wrapper = document.createElement("div");
-  wrapper.classList.add("message");
-  wrapper.classList.add(role === "user" ? "user" : "assistant");
+// ==================== NAVEGACIÓN ====================
+const navbar = document.getElementById('navbar');
+const mobileToggle = document.getElementById('mobileToggle');
+const navMenu = document.getElementById('navMenu');
 
-  const avatar = document.createElement("div");
-  avatar.className = "message-avatar";
-  avatar.innerText = role === "user" ? "🫵" : "🤖";
+// Scroll effect en navbar
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+    } else {
+        navbar.classList.remove('scrolled');
+    }
+});
 
-  const content = document.createElement("div");
-  content.className = "message-content";
-
-  const bubble = document.createElement("div");
-  bubble.className = "message-text";
-  bubble.innerText = text;
-
-  const time = document.createElement("div");
-  time.className = "message-time";
-  time.innerText = new Date().toLocaleTimeString();
-
-  content.appendChild(bubble);
-  content.appendChild(time);
-
-  wrapper.appendChild(avatar);
-  wrapper.appendChild(content);
-
-  chatMessages.appendChild(wrapper);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+// Mobile menu toggle
+if (mobileToggle) {
+    mobileToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+    });
 }
 
-/* ====== LLAMADA al backend y reproducción audio ====== */
-async function callChatAPI(text) {
-  try {
-    toggleTyping(true);
-    const res = await fetch("/.netlify/functions/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
+// Cerrar menu al hacer click en un link
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        navMenu.classList.remove('active');
+    });
+});
+
+// ==================== SMOOTH SCROLL ====================
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            const offsetTop = target.offsetTop - 80;
+            window.scrollTo({
+                top: offsetTop,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+// ==================== ANIMACIONES DE SCROLL ====================
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, observerOptions);
+
+// Observar elementos
+document.querySelectorAll('.service-card, .step').forEach(el => {
+    observer.observe(el);
+});
+
+// ==================== FUNCIONES DEL CHAT ====================
+
+// Auto-resize del textarea
+function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+}
+
+// Manejar Enter para enviar
+function handleKeyDown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+// Enviar pregunta rápida
+function sendQuickQuestion(question) {
+    const input = document.getElementById('userInput');
+    input.value = question;
+    sendMessage();
+}
+
+// Limpiar chat
+function clearChat() {
+    if (confirm('¿Estás seguro de que quieres limpiar toda la conversación?')) {
+        conversationHistory = [];
+        const messagesDiv = document.getElementById('chatMessages');
+        messagesDiv.innerHTML = `
+            <div class="message assistant">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-text">
+                        ¡Hola! 👋 Soy tu asistente de salud inteligente. Estoy aquí para ayudarte con información sobre:
+                        <br><br>
+                        • Síntomas y condiciones médicas<br>
+                        • Medicamentos y tratamientos<br>
+                        • Nutrición y vida saludable<br>
+                        • Prevención de enfermedades<br>
+                        <br>
+                        ¿En qué puedo ayudarte hoy?
+                    </div>
+                    <div class="message-time">Ahora</div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Obtener hora actual
+function getCurrentTime() {
+    const now = new Date();
+    return now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Agregar mensaje al chat
+function addMessage(text, sender) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = sender === 'user' ? '👤' : '🤖';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    const textDiv = document.createElement('div');
+    textDiv.className = 'message-text';
+    textDiv.textContent = text;
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'message-time';
+    timeDiv.textContent = getCurrentTime();
+    
+    contentDiv.appendChild(textDiv);
+    contentDiv.appendChild(timeDiv);
+    
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(contentDiv);
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Mostrar/ocultar indicador de escritura
+function toggleTypingIndicator(show) {
+    const indicator = document.getElementById('typingIndicator');
+    if (show) {
+        indicator.classList.add('active');
+    } else {
+        indicator.classList.remove('active');
+    }
+    const messagesDiv = document.getElementById('chatMessages');
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Enviar mensaje
+async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const message = input.value.trim();
+    
+    if (!message || isTyping) return;
+
+    // Agregar mensaje del usuario
+    addMessage(message, 'user');
+    input.value = '';
+    input.style.height = 'auto';
+
+    // Deshabilitar input
+    isTyping = true;
+    sendBtn.disabled = true;
+    input.disabled = true;
+    toggleTypingIndicator(true);
+
+    // Agregar al historial
+    conversationHistory.push({
+        role: 'user',
+        content: message
     });
 
-    const data = await res.json(); 
+    try {
+        // Llamar a la función de Netlify
+        const response = await fetch('/.netlify/functions/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                messages: conversationHistory,
+                systemContext: systemContext
+            })
+        });
 
-  } catch (err) {
-    toggleTyping(false);
-    console.error(err);
-    addMessage({ role: "assistant", text: "Ocurrió un error al contactar al servicio." });
-  }
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Error al procesar la solicitud');
+        }
+
+        const data = await response.json();
+        const assistantMessage = data.message;
+
+        // Agregar respuesta al historial
+        conversationHistory.push({
+            role: 'assistant',
+            content: assistantMessage
+        });
+
+        // Simular delay de escritura para efecto más natural
+        setTimeout(() => {
+            toggleTypingIndicator(false);
+            addMessage(assistantMessage, 'assistant');
+        }, 500);
+
+    } catch (error) {
+        console.error('Error:', error);
+        toggleTypingIndicator(false);
+        addMessage('Lo siento, hubo un error al procesar tu consulta. Por favor intenta de nuevo en un momento. Si el problema persiste, verifica que la aplicación esté correctamente configurada.', 'assistant');
+    } finally {
+        // Rehabilitar input
+        setTimeout(() => {
+            isTyping = false;
+            sendBtn.disabled = false;
+            input.disabled = false;
+            input.focus();
+        }, 500);
+    }
 }
 
-function toggleTyping(on) {
-  if (!typingIndicator) return;
-  if (on) typingIndicator.classList.add("active");
-  else typingIndicator.classList.remove("active");
-}
+// ==================== INICIALIZACIÓN ====================
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🏥 MediAI cargado correctamente');
+    
+    // Focus automático en el input del chat
+    const userInput = document.getElementById('userInput');
+    if (userInput) {
+        userInput.focus();
+    }
 
-/* ====== Reproducir base64 audio y animar boca del avatar ====== */
-async function playBase64AudioAndAnimate(base64) {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type: "audio/wav" });
-  const url = URL.createObjectURL(blob);
+    // Agregar efecto de hover en las tarjetas de servicio
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
 
-  // Crear audio element
-  const audio = new Audio(url);
-  audio.crossOrigin = "anonymous";
+    // Animación de números en stats
+    const stats = document.querySelectorAll('.stat-number');
+    stats.forEach(stat => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'countUp 1s ease-out';
+                }
+            });
+        });
+        observer.observe(stat);
+    });
+});
 
-  // Animación: togglear clase .speaking en avatar mientras suena
-  const aiAvatarImg = document.getElementById("aiAvatarImg");
-  const avatarFace = aiAvatarImg || document.querySelector(".ai-avatar, .chat-avatar-small, #aiAvatarImg");
-
-  function startSpeaking() {
-    if (avatarFace) avatarFace.classList.add("speaking");
-    // mientras tanto: pulso de boca (simple)
-    mouthInterval = setInterval(() => {
-      document.documentElement.style.setProperty("--mouth-open", Math.random() * 1.0 + "");
-      if (avatarFace) avatarFace.style.transform = `translateY(${Math.random()*1.5}px)`;
-    }, 120);
-  }
-
-  function stopSpeaking() {
-    if (avatarFace) avatarFace.classList.remove("speaking");
-    clearInterval(mouthInterval);
-    if (avatarFace) avatarFace.style.transform = "";
-  }
-
-  let mouthInterval;
-  audio.addEventListener("play", startSpeaking);
-  audio.addEventListener("ended", stopSpeaking);
-  audio.addEventListener("pause", stopSpeaking);
-
-  // Reproducir
-  await audio.play();
-}
-
-/* ====== Enviar mensaje (botón o enter) ====== */
-async function sendMessage() {
-  const text = userInput.value.trim();
-  if (!text) return;
-  addMessage({ role: "user", text });
-  userInput.value = "";
-  await callChatAPI(text);
-}
-
-/* ====== Quick questions ====== */
-function sendQuickQuestion(text) {
-  userInput.value = text;
-  sendMessage();
-}
-
-/* ====== Bind evento boton y Enter ====== */
-if (sendBtn) sendBtn.addEventListener("click", sendMessage);
-function handleKeyDown(e) {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-}
-window.handleKeyDown = handleKeyDown; // el HTML ya llama a handleKeyDown
-
-/* ====== Auto-resize textarea ====== */
-function autoResize(el) {
-  el.style.height = "auto";
-  el.style.height = (el.scrollHeight) + "px";
-}
-window.autoResize = autoResize;
-
-/* ====== SPEECH-TO-TEXT (microfono) ====== */
-let recognition;
-function initSpeechRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    console.warn("SpeechRecognition no disponible en este navegador.");
-    return;
-  }
-  recognition = new SpeechRecognition();
-  recognition.lang = "es-CO";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onresult = (e) => {
-    const transcript = e.results[0][0].transcript;
-    userInput.value = transcript;
-    sendMessage();
-  };
-
-  recognition.onerror = (err) => {
-    console.error("STT error:", err);
-  };
-}
-
-initSpeechRecognition();
-
-/* ====== Botón de micrófono (si quieres añadir uno visual) ====== */
-window.startListening = function() {
-  if (!recognition) return alert("Tu navegador no soporta reconocimiento de voz.");
-  recognition.start();
-}
-
-/* ====== Export quick functions global (tu HTML usa sendQuickQuestion) ====== */
-window.sendQuickQuestion = sendQuickQuestion;
-window.sendMessage = sendMessage;
+// ==================== EASTER EGG ====================
+let clickCount = 0;
+document.querySelector('.logo')?.addEventListener('click', () => {
+    clickCount++;
+    if (clickCount === 5) {
+        console.log('!Desarrollado con ❤️');
+        clickCount = 0;
+    }
+});
