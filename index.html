@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigiCare - Asistente de Salud Inteligente</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🏥</span>
+                <span>DigiCare</span>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#inicio" class="nav-link">Inicio</a></li>
+                <li><a href="#servicios" class="nav-link">Servicios</a></li>
+                <li><a href="#como-funciona" class="nav-link">¿Cómo funciona?</a></li>
+                <li><a href="#chat" class="btn-nav">Hablar con IA</a></li>
+            </ul>
+            <button class="mobile-toggle" id="mobileToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Tu Asistente de Salud
+                    <span class="gradient-text">Inteligente</span>
+                </h1>
+                <p class="hero-subtitle">Obtén información médica confiable al instante con nuestra IA especializada en salud</p>
+                <div class="hero-buttons">
+                    <a href="#chat" class="btn btn-primary btn-large">
+                        <span>Hablar Ahora</span>
+                        <span class="btn-icon">💬</span>
+                    </a>
+                    <a href="#como-funciona" class="btn btn-secondary btn-large">
+                        <span>Ver Más</span>
+                        <span class="btn-icon">→</span>
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Disponible</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Confiable</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Consultas</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="ai-avatar-container">
+                    <div class="ai-avatar">
+                        <div class="avatar-face">
+                            <div class="avatar-eyes">
+                                <div class="eye left-eye"></div>
+                                <div class="eye right-eye"></div>
+                            </div>
+                            <div class="avatar-mouth"></div>
+                        </div>
+                        <div class="pulse-ring"></div>
+                        <div class="pulse-ring delay-1"></div>
+                        <div class="pulse-ring delay-2"></div>
+                    </div>
+                    <div class="avatar-status">
+                        <span class="status-dot"></span>
+                        <span>En línea y listo para ayudar</span>
+                    </div>
+                </div>
+                <div class="floating-particles">
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Servicios -->
+    <section id="servicios" class="services">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">¿En qué podemos ayudarte?</h2>
+                <p class="section-subtitle">Nuestro asistente de IA está entrenado para brindarte información médica precisa</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card" data-aos="fade-up">
+                    <div class="service-icon">💊</div>
+                    <h3>Medicamentos</h3>
+                    <p>Información sobre dosis, efectos secundarios, interacciones y contraindicaciones</p>
+                    <div class="service-features">
+                        <span class="feature-tag">Dosis</span>
+                        <span class="feature-tag">Efectos</span>
+                        <span class="feature-tag">Interacciones</span>
+                    </div>
+                </div>
+                <div class="service-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="service-icon">🩺</div>
+                    <h3>Síntomas</h3>
+                    <p>Consulta sobre síntomas comunes, posibles causas y cuándo buscar atención médica</p>
+                    <div class="service-features">
+                        <span class="feature-tag">Diagnóstico</span>
+                        <span class="feature-tag">Causas</span>
+                        <span class="feature-tag">Tratamiento</span>
+                    </div>
+                </div>
+                <div class="service-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="service-icon">🏃</div>
+                    <h3>Vida Saludable</h3>
+                    <p>Consejos sobre nutrición, ejercicio, sueño y bienestar general</p>
+                    <div class="service-features">
+                        <span class="feature-tag">Nutrición</span>
+                        <span class="feature-tag">Ejercicio</span>
+                        <span class="feature-tag">Bienestar</span>
+                    </div>
+                </div>
+                <div class="service-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="service-icon">🧬</div>
+                    <h3>Prevención</h3>
+                    <p>Información sobre prevención de enfermedades, vacunas y chequeos médicos</p>
+                    <div class="service-features">
+                        <span class="feature-tag">Vacunas</span>
+                        <span class="feature-tag">Chequeos</span>
+                        <span class="feature-tag">Screening</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cómo Funciona -->
+    <section id="como-funciona" class="how-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">¿Cómo funciona?</h2>
+                <p class="section-subtitle">Simple, rápido y efectivo en 3 pasos</p>
+            </div>
+            <div class="steps-container">
+                <div class="step" data-aos="zoom-in">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">✍️</div>
+                    <h3>Escribe tu pregunta</h3>
+                    <p>Describe tu consulta de salud de forma natural, como si hablaras con un médico</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">🤖</div>
+                    <h3>IA Analiza</h3>
+                    <p>Nuestra inteligencia artificial procesa tu pregunta usando información médica actualizada</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-aos="zoom-in" data-aos-delay="400">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">💡</div>
+                    <h3>Obtén Respuesta</h3>
+                    <p>Recibe información clara, precisa y basada en evidencia científica</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chat Section -->
+    <section id="chat" class="chat-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Habla con Nuestro Asistente</h2>
+                <p class="section-subtitle">Disponible 24/7 para responder tus dudas de salud</p>
+            </div>
+            
+            <div class="disclaimer-banner">
+                <div class="disclaimer-icon">⚠️</div>
+                <div class="disclaimer-content">
+                    <strong>Aviso Importante:</strong> Este asistente proporciona información general de salud. No reemplaza la consulta médica profesional. Ante emergencias, llama al 123.
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="chat-avatar-small">
+                        <div class="avatar-face-small">
+                            <div class="eyes-small">
+                                <div class="eye-small"></div>
+                                <div class="eye-small"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-info">
+                        <h3>Asistente MediAI</h3>
+                        <span class="online-status">
+                            <span class="status-dot-small"></span>
+                            En línea
+                        </span>
+                    </div>
+                    <button class="clear-chat-btn" onclick="clearChat()" title="Limpiar conversación">
+                        🗑️
+                    </button>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                ¡Hola! 👋 Soy tu asistente de salud inteligente. Estoy aquí para ayudarte con información sobre:
+                                <br><br>
+                                • Síntomas y condiciones médicas<br>
+                                • Medicamentos y tratamientos<br>
+                                • Nutrición y vida saludable<br>
+                                • Prevención de enfermedades<br>
+                                <br>
+                                ¿En qué puedo ayudarte hoy?
+                            </div>
+                            <div class="message-time">Ahora</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="message-avatar">🤖</div>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="quick-questions">
+                        <button class="quick-btn" onclick="sendQuickQuestion('¿Qué puedo tomar para el dolor de cabeza?')">
+                            💊 Dolor de cabeza
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickQuestion('¿Cómo puedo mejorar mi sistema inmune?')">
+                            🛡️ Sistema inmune
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickQuestion('¿Cuántas horas debo dormir?')">
+                            😴 Horas de sueño
+                        </button>
+                    </div>
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="userInput" 
+                            placeholder="Escribe tu consulta de salud aquí..."
+                            rows="1"
+                            onkeydown="handleKeyDown(event)"
+                            oninput="autoResize(this)"
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                            <span class="send-icon">➤</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <span class="logo-icon">🏥</span>
+                        <span>MediAI</span>
+                    </div>
+                    <p>Tu asistente de salud inteligente, disponible 24/7 para ayudarte con información médica confiable.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#servicios">Servicios</a></li>
+                        <li><a href="#como-funciona">¿Cómo funciona?</a></li>
+                        <li><a href="#chat">Chat</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p>📧 info@mediai.com</p>
+                    <p>📱 +57 123 456 7890</p>
+                    <p>📍 Bucaramanga, Colombia</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 MediAI. Desarrollado con ❤️ para mejorar el acceso a información de salud.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
