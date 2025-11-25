@@ -14,7 +14,7 @@ export async function handler(event) {
       return { statusCode: 500, body: JSON.stringify({ error: "Missing OPENAI_API_KEY" }) };
     }
 
-    // ---------- 1) Pedir TEXTO a la IA ----------
+    // ---------- 1) Pedir TEXTO ----------
     const textResp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -36,11 +36,15 @@ export async function handler(event) {
       })
     });
 
-    const json = await textResp.json();
-    const replyText =
-      json?.choices?.[0]?.message?.content || "Aquí tienes tu respuesta.";
+    if (!textResp.ok) {
+      const errTxt = await textResp.text();
+      return { statusCode: 500, body: JSON.stringify({ error: errTxt }) };
+    }
 
-    // ---------- 2) Pedir AUDIO basado en el texto ----------
+    const json = await textResp.json();
+    const replyText = json?.choices?.[0]?.message?.content || "Aquí tienes tu respuesta.";
+
+    // ---------- 2) Pedir AUDIO ----------
     const ttsResp = await fetch("https://api.openai.com/v1/audio/speech", {
       method: "POST",
       headers: {
@@ -49,16 +53,19 @@ export async function handler(event) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini-tts",
-        input: replyText,
         voice: "alloy",
-        format: "wav"
+        input: replyText
       })
     });
 
-    const audioBuffer = await ttsResp.arrayBuffer();
-    const audioBase64 = Buffer.from(audioBuffer).toString("base64");
+    if (!ttsResp.ok) {
+      const errTxt = await ttsResp.text();
+      return { statusCode: 500, body: JSON.stringify({ error: errTxt }) };
+    }
 
-    // ---------- 3) Respuesta final ----------
+    const audioBinary = await ttsResp.arrayBuffer();
+    const audioBase64 = Buffer.from(audioBinary).toString("base64");
+
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -71,7 +78,7 @@ export async function handler(event) {
     console.error("Function error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message || "Server error" })
+      body: JSON.stringify({ error: err.message })
     };
   }
 }
