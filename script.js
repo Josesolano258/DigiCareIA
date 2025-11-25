@@ -224,15 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userInput) userInput.focus();
 });
 
-// ==================== EASTER EGG ====================
-let clickCount = 0;
-document.querySelector('.logo')?.addEventListener('click', () => {
-    clickCount++;
-    if (clickCount === 5) {
-        console.log("Desarrollado con ❤️ por Jose");
-        clickCount = 0;
-    }
-});
 
 
 const toggle = document.querySelector('.mobile-toggle');
