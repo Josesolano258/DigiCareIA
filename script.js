@@ -2,7 +2,7 @@
 
 /* ====== CONFIG ====== */
 // Path del asset avatar (el path que subiste). En deploy lo mapearás a URL público.
-const AVATAR_SRC = "/mnt/data/8bac4b48-adf1-43ba-88d8-c2e56f19f8d5.png";
+const AVATAR_SRC = "./avatar.png"; 
 
 // IDs del HTML
 const chatMessages = document.getElementById("chatMessages");
@@ -71,19 +71,7 @@ async function callChatAPI(text) {
       body: JSON.stringify({ message: text })
     });
 
-    const data = await res.json();
-    toggleTyping(false);
-
-    if (data.error) {
-      addMessage({ role: "assistant", text: "Error: " + data.error });
-      return;
-    }
-
-    addMessage({ role: "assistant", text: data.reply });
-
-    if (data.audioBase64) {
-      await playBase64AudioAndAnimate(data.audioBase64);
-    }
+    const data = await res.json(); 
 
   } catch (err) {
     toggleTyping(false);

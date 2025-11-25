@@ -4,8 +4,9 @@ import fetch from "node-fetch";
 export async function handler(event) {
   try {
     const { message } = JSON.parse(event.body || "{}");
+
     if (!message) {
-      return { statusCode: 400, body: JSON.stringify({ error: "No message" }) };
+      return { statusCode: 400, body: JSON.stringify({ error: "No message provided" }) };
     }
 
     const OPENAI_KEY = process.env.OPENAI_API_KEY;
@@ -13,8 +14,8 @@ export async function handler(event) {
       return { statusCode: 500, body: JSON.stringify({ error: "Missing OPENAI_API_KEY" }) };
     }
 
-    // 1) Generar respuesta de texto con Chat Completions
-    const chatResp = await fetch("https://api.openai.com/v1/chat/completions", {
+    // ---------- 1) Pedir TEXTO a la IA ----------
+    const textResp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -23,20 +24,23 @@ export async function handler(event) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "Eres una enfermera profesional, amable y calmada. Responde con lenguaje claro y empático." },
-          { role: "user", content: message }
-        ],
-        max_tokens: 600,
-        temperature: 0.2
+          {
+            role: "system",
+            content: "Eres una enfermera profesional, cálida, amable y empática."
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ]
       })
     });
 
-    const chatData = await chatResp.json();
-    const reply = chatData?.choices?.[0]?.message?.content?.trim() || "Perdón, no pude generar la respuesta.";
+    const json = await textResp.json();
+    const replyText =
+      json?.choices?.[0]?.message?.content || "Aquí tienes tu respuesta.";
 
-    // 2) Generar TTS (audio) — usar endpoint de Speech / Audio
-    // Nota: la ruta y payload pueden variar según la versión de la API. Este ejemplo usa
-    // "audio/speech" estilo OpenAI TTS. Ajusta si tu cuenta requiere otro endpoint.
+    // ---------- 2) Pedir AUDIO basado en el texto ----------
     const ttsResp = await fetch("https://api.openai.com/v1/audio/speech", {
       method: "POST",
       headers: {
@@ -45,20 +49,20 @@ export async function handler(event) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini-tts",
-        voice: "verse",              // voz femenina, cálida (ajústalo si cambias)
-        input: reply,
-        format: "wav"               // pedimos WAV para compatibilidad
+        input: replyText,
+        voice: "alloy",
+        format: "wav"
       })
     });
 
-    // Si el endpoint devuelve binary stream, transformamos a base64
-    const arrayBuffer = await ttsResp.arrayBuffer();
-    const audioBase64 = Buffer.from(arrayBuffer).toString("base64");
+    const audioBuffer = await ttsResp.arrayBuffer();
+    const audioBase64 = Buffer.from(audioBuffer).toString("base64");
 
+    // ---------- 3) Respuesta final ----------
     return {
       statusCode: 200,
       body: JSON.stringify({
-        reply,
+        reply: replyText,
         audioBase64
       })
     };
