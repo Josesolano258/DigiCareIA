@@ -5,46 +5,39 @@ let isTyping = false;
 const systemContext = `Eres un asistente de salud profesional, empático y confiable. Tu objetivo es proporcionar información médica precisa, clara y basada en evidencia científica.
 
 SIEMPRE:
-- Proporciona información basada en estudios y conocimiento médico actualizado
-- Usa un lenguaje claro, accesible y comprensible
-- Sé empático y muestra comprensión hacia las preocupaciones de salud
-- Recuerda a los usuarios consultar con profesionales de salud cuando sea necesario
-- Identifica emergencias y sugiere atención médica inmediata cuando corresponda
+- Proporcion información basada en estudios y conocimiento médico actualizado
+- Usa lenguaje claro, accesible y comprensible
+- Sé empático y demuestra comprensión hacia las preocupaciones de salud
+- Recuerda consultar con profesionales de salud cuando sea necesario
+- Identifica emergencias y recomienda atención médica inmediata cuando corresponda
 - Explica conceptos médicos de forma simple
 - Proporciona información sobre síntomas, enfermedades, medicamentos, prevención y estilos de vida saludables
-- Responde SIEMPRE en español de manera natural y amigable
+- Responde SIEMPRE en español, con tono cálido y humano.
 
-IMPORTANTE: 
-- NO eres un médico y tus respuestas son informativas, no diagnósticos médicos
-- Ante síntomas graves, SIEMPRE recomienda buscar atención médica inmediata
-- Si detectas una emergencia (dolor de pecho, dificultad para respirar, sangrado severo, etc.), indica que llamen al 123 inmediatamente`;
+IMPORTANTE:
+- NO eres un médico y tus respuestas son informativas, no diagnósticos médicos.
+- En síntomas graves, SIEMPRE recomienda atención médica urgente.
+- Si detectas emergencia, indica llamar al 123 inmediatamente.`;
 
 // ==================== NAVEGACIÓN ====================
 const navbar = document.getElementById('navbar');
 const mobileToggle = document.getElementById('mobileToggle');
 const navMenu = document.getElementById('navMenu');
 
-// Scroll effect en navbar
+// Scroll effect
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
 });
 
-// Mobile menu toggle
+// Mobile menu
 if (mobileToggle) {
     mobileToggle.addEventListener('click', () => {
         navMenu.classList.toggle('active');
     });
 }
 
-// Cerrar menu al hacer click en un link
 document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-        navMenu.classList.remove('active');
-    });
+    link.addEventListener('click', () => navMenu.classList.remove('active'));
 });
 
 // ==================== SMOOTH SCROLL ====================
@@ -54,42 +47,29 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
             const offsetTop = target.offsetTop - 80;
-            window.scrollTo({
-                top: offsetTop,
-                behavior: 'smooth'
-            });
+            window.scrollTo({ top: offsetTop, behavior: 'smooth' });
         }
     });
 });
 
-// ==================== ANIMACIONES DE SCROLL ====================
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
+// ==================== ANIMACIONES ====================
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
+        if (entry.isIntersecting) entry.target.classList.add('visible');
     });
-}, observerOptions);
-
-// Observar elementos
-document.querySelectorAll('.service-card, .step').forEach(el => {
-    observer.observe(el);
 });
 
-// ==================== FUNCIONES DEL CHAT ====================
+document.querySelectorAll('.service-card, .step').forEach(el => observer.observe(el));
 
-// Auto-resize del textarea
+// ==================== CHAT ====================
+
+// Auto-resize
 function autoResize(textarea) {
     textarea.style.height = 'auto';
     textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
 }
 
-// Manejar Enter para enviar
+// Enter para enviar
 function handleKeyDown(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -97,194 +77,151 @@ function handleKeyDown(event) {
     }
 }
 
-// Enviar pregunta rápida
-function sendQuickQuestion(question) {
+// Pregunta rápida
+function sendQuickQuestion(text) {
     const input = document.getElementById('userInput');
-    input.value = question;
+    input.value = text;
     sendMessage();
 }
 
 // Limpiar chat
 function clearChat() {
-    if (confirm('¿Estás seguro de que quieres limpiar toda la conversación?')) {
-        conversationHistory = [];
-        const messagesDiv = document.getElementById('chatMessages');
-        messagesDiv.innerHTML = `
-            <div class="message assistant">
-                <div class="message-avatar">🤖</div>
-                <div class="message-content">
-                    <div class="message-text">
-                        ¡Hola! 👋 Soy tu asistente de salud inteligente. Estoy aquí para ayudarte con información sobre:
-                        <br><br>
-                        • Síntomas y condiciones médicas<br>
-                        • Medicamentos y tratamientos<br>
-                        • Nutrición y vida saludable<br>
-                        • Prevención de enfermedades<br>
-                        <br>
-                        ¿En qué puedo ayudarte hoy?
-                    </div>
-                    <div class="message-time">Ahora</div>
+    if (!confirm('¿Seguro que quieres limpiar el chat?')) return;
+    conversationHistory = [];
+    document.getElementById('chatMessages').innerHTML = `
+        <div class="message assistant">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+                <div class="message-text">
+                    ¡Hola! 👋 Soy DigiCare Twin. Puedo ayudarte con síntomas, medicamentos, prevención y dudas de salud.
                 </div>
+                <div class="message-time">Ahora</div>
             </div>
-        `;
-    }
+        </div>`;
 }
 
-// Obtener hora actual
+// Hora actual
 function getCurrentTime() {
-    const now = new Date();
-    return now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    return new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Agregar mensaje al chat
+// Agregar mensaje
 function addMessage(text, sender) {
-    const messagesDiv = document.getElementById('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}`;
-    
-    const avatar = document.createElement('div');
-    avatar.className = 'message-avatar';
-    avatar.textContent = sender === 'user' ? '👤' : '🤖';
-    
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    
-    const textDiv = document.createElement('div');
-    textDiv.className = 'message-text';
-    textDiv.textContent = text;
-    
-    const timeDiv = document.createElement('div');
-    timeDiv.className = 'message-time';
-    timeDiv.textContent = getCurrentTime();
-    
-    contentDiv.appendChild(textDiv);
-    contentDiv.appendChild(timeDiv);
-    
-    messageDiv.appendChild(avatar);
-    messageDiv.appendChild(contentDiv);
-    
-    messagesDiv.appendChild(messageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    const chat = document.getElementById('chatMessages');
+
+    const msg = document.createElement('div');
+    msg.className = `message ${sender}`;
+
+    msg.innerHTML = `
+        <div class="message-avatar">${sender === 'user' ? '👤' : '🤖'}</div>
+        <div class="message-content">
+            <div class="message-text">${text}</div>
+            <div class="message-time">${getCurrentTime()}</div>
+        </div>
+    `;
+
+    chat.appendChild(msg);
+    chat.scrollTop = chat.scrollHeight;
 }
 
-// Mostrar/ocultar indicador de escritura
+// Typing indicator
 function toggleTypingIndicator(show) {
-    const indicator = document.getElementById('typingIndicator');
-    if (show) {
-        indicator.classList.add('active');
-    } else {
-        indicator.classList.remove('active');
-    }
-    const messagesDiv = document.getElementById('chatMessages');
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    document.getElementById('typingIndicator').classList.toggle('active', show);
 }
 
-// Enviar mensaje
+// ========================================================
+// IA FALSA – RESPUESTAS PREDETERMINADAS
+// ========================================================
+
+const respuestasIA = [
+    { keywords: ["hola", "buenas", "hey"], respuesta: "¡Hola! 👋 Soy DigiCare Twin, tu asistente de salud. ¿Cómo puedo ayudarte hoy?" },
+
+    { keywords: ["triste", "mal", "deprimido"], respuesta: "Siento que te sientas así 💛. Tu bienestar emocional importa. Si quieres hablar, estoy aquí para escucharte." },
+
+    { keywords: ["ansiedad", "nervioso"], respuesta: "La ansiedad puede sentirse abrumadora. Respira profundo conmigo. ¿Qué crees que desencadenó la sensación?" },
+
+    { keywords: ["fiebre", "temperatura"], respuesta: "La fiebre suele ser una respuesta del cuerpo. Mantente hidratado y monitorea los grados. ¿Sabes cuánto tienes?" },
+
+    { keywords: ["tos", "gripe", "gripa"], respuesta: "La mayoría de gripes son virales. Descansa, hidrátate y evita cambios bruscos de clima. ¿Tienes dolor de garganta?" },
+
+    { keywords: ["mareo", "mareado"], respuesta: "El mareo puede deberse a deshidratación, presión baja o ansiedad. ¿Cuándo empezó?" },
+
+    // EMERGENCIAS
+    { keywords: ["dolor de pecho", "pecho"], respuesta: "⚠️ El dolor de pecho puede ser grave. Si es fuerte o se irradia, llama al 123 inmediatamente." },
+
+    { keywords: ["no puedo respirar", "dificultad para respirar"], respuesta: "⚠️ Dificultad respiratoria es una emergencia. Llama al 123 ahora mismo." },
+
+    { keywords: ["sangre", "sangrado"], respuesta: "Si el sangrado no se detiene en 10 minutos o es abundante, busca atención urgente." },
+
+    // Nutrición
+    { keywords: ["alimentación", "dieta"], respuesta: "Una buena alimentación es clave. ¿Quieres perder, mantener o ganar peso?" },
+
+    // Medicamentos
+    { keywords: ["ibuprofeno", "acetaminofen", "medicamento"], respuesta: "Dime qué síntoma tienes y te doy información general sobre el medicamento." },
+
+    { keywords: ["gracias"], respuesta: "¡Con gusto! 💙 Estoy para ayudarte cuando lo necesites." }
+];
+
+function obtenerRespuesta(texto) {
+    const msg = texto.toLowerCase();
+
+    for (const r of respuestasIA) {
+        if (r.keywords.some(k => msg.includes(k))) {
+            return r.respuesta;
+        }
+    }
+
+    return "Te entiendo 💛. Si me das un poco más de detalle, podré ayudarte mejor.";
+}
+
+// ========================================================
+// ENVÍO DEL MENSAJE
+// ========================================================
 async function sendMessage() {
     const input = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
     const message = input.value.trim();
-    
+
     if (!message || isTyping) return;
 
-    // Agregar mensaje del usuario
-    addMessage(message, 'user');
-    input.value = '';
-    input.style.height = 'auto';
+    addMessage(message, "user");
+    input.value = "";
+    input.style.height = "auto";
 
-    // Deshabilitar input
     isTyping = true;
     sendBtn.disabled = true;
     input.disabled = true;
     toggleTypingIndicator(true);
 
-    // Agregar al historial
-    conversationHistory.push({
-        role: 'user',
-        content: message
-    });
+    // Guardar historial
+    conversationHistory.push({ role: "user", content: message });
 
-    try {
-        // Llamar a la función de Netlify
-        const response = await fetch('/.netlify/functions/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                messages: conversationHistory,
-                systemContext: systemContext
-            })
-        });
+    // IA FALSA — respuesta inmediata
+    const respuesta = obtenerRespuesta(message);
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || 'Error al procesar la solicitud');
-        }
-
-        const data = await response.json();
-        const assistantMessage = data.message;
-
-        // Agregar respuesta al historial
-        conversationHistory.push({
-            role: 'assistant',
-            content: assistantMessage
-        });
-
-        // Simular delay de escritura para efecto más natural
-        setTimeout(() => {
-            toggleTypingIndicator(false);
-            addMessage(assistantMessage, 'assistant');
-        }, 500);
-
-    } catch (error) {
-        console.error('Error:', error);
+    setTimeout(() => {
         toggleTypingIndicator(false);
-        addMessage('Lo siento, hubo un error al procesar tu consulta. Por favor intenta de nuevo en un momento. Si el problema persiste, verifica que la aplicación esté correctamente configurada.', 'assistant');
-    } finally {
-        // Rehabilitar input
-        setTimeout(() => {
-            isTyping = false;
-            sendBtn.disabled = false;
-            input.disabled = false;
-            input.focus();
-        }, 500);
-    }
+        addMessage(respuesta, "assistant");
+
+        conversationHistory.push({
+            role: "assistant",
+            content: respuesta
+        });
+
+        // Rehabilitar
+        isTyping = false;
+        sendBtn.disabled = false;
+        input.disabled = false;
+        input.focus();
+    }, 500);
 }
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🏥 MediAI cargado correctamente');
-    
-    // Focus automático en el input del chat
+    console.log("DigiCare Twin cargado correctamente");
+
     const userInput = document.getElementById('userInput');
-    if (userInput) {
-        userInput.focus();
-    }
-
-    // Agregar efecto de hover en las tarjetas de servicio
-    document.querySelectorAll('.service-card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-10px) scale(1.02)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-
-    // Animación de números en stats
-    const stats = document.querySelectorAll('.stat-number');
-    stats.forEach(stat => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animation = 'countUp 1s ease-out';
-                }
-            });
-        });
-        observer.observe(stat);
-    });
+    if (userInput) userInput.focus();
 });
 
 // ==================== EASTER EGG ====================
@@ -292,7 +229,15 @@ let clickCount = 0;
 document.querySelector('.logo')?.addEventListener('click', () => {
     clickCount++;
     if (clickCount === 5) {
-        console.log('!Desarrollado con ❤️');
+        console.log("Desarrollado con ❤️ por Jose");
         clickCount = 0;
     }
+});
+
+
+const toggle = document.querySelector('.mobile-toggle');
+const menu = document.querySelector('.nav-menu');
+
+toggle.addEventListener('click', () => {
+    menu.classList.toggle('active');
 });
