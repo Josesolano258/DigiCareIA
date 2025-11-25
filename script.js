@@ -5,13 +5,13 @@ let isTyping = false;
 const systemContext = `Eres un asistente de salud profesional, empático y confiable. Tu objetivo es proporcionar información médica precisa, clara y basada en evidencia científica.
 
 SIEMPRE:
-- Proporcion información basada en estudios y conocimiento médico actualizado
-- Usa lenguaje claro, accesible y comprensible
-- Sé empático y demuestra comprensión hacia las preocupaciones de salud
-- Recuerda consultar con profesionales de salud cuando sea necesario
-- Identifica emergencias y recomienda atención médica inmediata cuando corresponda
-- Explica conceptos médicos de forma simple
-- Proporciona información sobre síntomas, enfermedades, medicamentos, prevención y estilos de vida saludables
+- Proporciona información basada en estudios y conocimiento médico actualizado.
+- Usa lenguaje claro, accesible y comprensible.
+- Sé empático y demuestra comprensión hacia las preocupaciones de salud.
+- Recuerda consultar con profesionales de salud cuando sea necesario.
+- Identifica emergencias y recomienda atención médica inmediata cuando corresponda.
+- Explica conceptos médicos de forma simple.
+- Proporciona información sobre síntomas, enfermedades, medicamentos, prevención y estilos de vida saludables.
 - Responde SIEMPRE en español, con tono cálido y humano.
 
 IMPORTANTE:
@@ -63,7 +63,7 @@ document.querySelectorAll('.service-card, .step').forEach(el => observer.observe
 
 // ==================== CHAT ====================
 
-// Auto-resize
+// Auto-resize textarea
 function autoResize(textarea) {
     textarea.style.height = 'auto';
     textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
@@ -87,7 +87,9 @@ function sendQuickQuestion(text) {
 // Limpiar chat
 function clearChat() {
     if (!confirm('¿Seguro que quieres limpiar el chat?')) return;
+
     conversationHistory = [];
+
     document.getElementById('chatMessages').innerHTML = `
         <div class="message assistant">
             <div class="message-avatar">🤖</div>
@@ -105,7 +107,7 @@ function getCurrentTime() {
     return new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Agregar mensaje
+// Agregar mensaje al chat
 function addMessage(text, sender) {
     const chat = document.getElementById('chatMessages');
 
@@ -130,62 +132,43 @@ function toggleTypingIndicator(show) {
 }
 
 // ========================================================
-// IA FALSA – RESPUESTAS PREDETERMINADAS
+// RESPUESTAS PREDETERMINADAS (IA FALSA)
 // ========================================================
-
-// ========================================================
-// IA FALSA – RESPUESTAS PREDETERMINADAS (MEJORADAS)
-// ========================================================
-
 const respuestasIA = [
-    // SALUD GENERAL
-    { keywords: ["hola", "buenas", "hey"], respuesta: "¡Hola! 👋 Soy DigiCare Twin. ¿En qué puedo ayudarte hoy con tu salud?" },
-    { keywords: ["salud"], respuesta: "La salud es fundamental. ¿Quieres hablar de prevención, síntomas, medicamentos o bienestar?" },
+    // SALUDO
+    { keywords: ["hola", "buenas", "hey"], respuesta: "¡Hola! 👋 ¿En qué puedo ayudarte hoy con tu salud?" },
 
-    // EMOCIONES / SALUD MENTAL
-    { keywords: ["triste", "mal", "deprimido"], respuesta: "Siento mucho que te sientas así 💛. Hablar de lo que sientes es un buen paso. ¿Quieres contarme qué pasó?" },
-    { keywords: ["ansiedad", "nervioso", "estresado"], respuesta: "La ansiedad puede ser muy incómoda. Respira profundo conmigo. ¿Qué crees que provocó la sensación?" },
-    { keywords: ["insomnio", "dormir"], respuesta: "Dormir mal puede afectar todo tu día. Intenta evitar pantallas 1 hora antes de dormir. ¿Desde cuándo tienes problemas de sueño?" },
+    // EMOCIONES
+    { keywords: ["triste", "mal", "deprimido"], respuesta: "Lamento que te sientas así 💛. Si quieres hablar, estoy aquí para escucharte." },
+    { keywords: ["ansiedad", "nervioso", "estresado"], respuesta: "La ansiedad puede ser difícil. Respira profundo. ¿Qué crees que te la está causando?" },
 
     // SÍNTOMAS COMUNES
-    { keywords: ["fiebre", "temperatura"], respuesta: "La fiebre es una reacción del cuerpo. Mantente hidratado, reposa y controla los grados. ¿Qué temperatura tienes?" },
-    { keywords: ["tos", "gripe", "gripa"], respuesta: "La gripa suele ser viral. Reposo, agua y evitar cambios de clima ayuda. ¿Tienes dolor en la garganta o congestión?" },
-    { keywords: ["mareo", "mareado"], respuesta: "El mareo puede deberse a deshidratación o presión baja. ¿Has comido y tomado agua hoy?" },
-    { keywords: ["dolor de cabeza", "cefalea", "migraña"], respuesta: "El dolor de cabeza puede deberse a estrés, tensión, deshidratación o sueño. ¿Dónde sientes el dolor exactamente?" },
-    { keywords: ["náusea", "vomito", "vómito"], respuesta: "Evita comidas pesadas y toma sorbos de agua. Si vomitas más de 3 veces, consulta atención médica." },
+    { keywords: ["fiebre"], respuesta: "La fiebre indica infección o inflamación. ¿Qué temperatura tienes actualmente?" },
+    { keywords: ["tos", "gripe"], respuesta: "La mayoría de las gripas son virales. ¿Tienes congestión, dolor de garganta o dolor corporal?" },
+    { keywords: ["dolor de cabeza"], respuesta: "¿Dónde sientes el dolor? ¿En la frente, sienes o parte trasera de la cabeza?" },
+    { keywords: ["mareo"], respuesta: "El mareo puede venir de deshidratación. ¿Has tomado agua hoy?" },
+    { keywords: ["náusea", "vómito"], respuesta: "Toma sorbos pequeños de agua. Si vomitas varias veces, consulta atención médica." },
 
     // DOLORES
-    { keywords: ["dolor de espalda"], respuesta: "El dolor de espalda suele mejorar con calor y descanso. ¿Es en la parte baja, media o alta?" },
-    { keywords: ["dolor de estómago"], respuesta: "Puede ser indigestión, estrés o infección. ¿Tienes diarrea, náuseas o fiebre?" },
-    { keywords: ["dolor de piernas"], respuesta: "Puede ser fatiga, mala circulación o tensión muscular. ¿Empezó después de actividad física?" },
+    { keywords: ["dolor de espalda"], respuesta: "¿Es dolor bajo, medio o alto? ¿Empezó después de cargar algo o mala postura?" },
+    { keywords: ["dolor de pierna"], respuesta: "Puede ser muscular o de circulación. ¿Fue después de caminar o ejercicio?" },
 
     // EMERGENCIAS
-    { keywords: ["dolor de pecho"], respuesta: "⚠️ El dolor de pecho puede ser grave. Si es fuerte, acompañado de sudor, náusea o se irradia al brazo, llama al 123 ya." },
-    { keywords: ["no puedo respirar", "dificultad para respirar"], respuesta: "⚠️ Dificultad para respirar es una emergencia. Busca ayuda y llama al 123 ahora mismo." },
-    { keywords: ["sangre", "sangrado"], respuesta: "Si el sangrado no para en 10 minutos o es abundante, busca atención urgente." },
+    { keywords: ["dolor de pecho"], respuesta: "⚠️ Si el dolor es fuerte o se irradia al brazo, llama al 123 de inmediato." },
+    { keywords: ["no puedo respirar"], respuesta: "⚠️ Dificultad al respirar es una emergencia. Busca ayuda y llama al 123." },
 
     // MEDICAMENTOS
-    { keywords: ["ibuprofeno"], respuesta: "El ibuprofeno reduce dolor e inflamación. Evítalo si tienes problemas gástricos. ¿Para qué síntoma lo quieres usar?" },
-    { keywords: ["acetaminofen", "paracetamol"], respuesta: "El acetaminofén ayuda con la fiebre y el dolor leve. No excedas 3 g al día. ¿Qué síntomas tienes?" },
-    { keywords: ["antibiótico", "antibiotico"], respuesta: "Los antibióticos SOLO sirven para infecciones bacterianas. No ayudan en gripa o virus." },
+    { keywords: ["ibuprofeno"], respuesta: "El ibuprofeno ayuda con inflamación. ¿Qué tipo de dolor tienes?" },
+    { keywords: ["acetaminofen"], respuesta: "Ayuda con fiebre y dolor leve. No excedas la dosis diaria recomendada." },
 
     // NUTRICIÓN
-    { keywords: ["alimentación", "dieta"], respuesta: "Una alimentación balanceada incluye vegetales, proteínas, agua y actividad física. ¿Quieres bajar, subir o mantener peso?" },
-    { keywords: ["agua", "hidratación"], respuesta: "La hidratación es clave. Según tu peso, deberías beber entre 1.5 y 3 litros diarios." },
-    { keywords: ["vitaminas"], respuesta: "Las vitaminas principales vienen de frutas, verduras y buena alimentación. ¿Tienes alguna en específica?" },
+    { keywords: ["dieta", "alimentación"], respuesta: "Una dieta equilibrada incluye verduras, proteína y agua. ¿Quieres una guía según tu objetivo?" },
 
-    // PREVENCIÓN
-    { keywords: ["ejercicio", "actividad"], respuesta: "El ejercicio mejora ánimo, sueño y salud general. Con 20–30 min al día es suficiente para empezar." },
-    { keywords: ["higiene"], respuesta: "Lavado de manos, baño diario y cuidado dental previenen infecciones. ¿Tienes alguna duda en particular?" },
+    // AGRADECIMIENTO
+    { keywords: ["gracias"], respuesta: "¡Con gusto! 💙 ¿Hay algo más en lo que pueda ayudarte?" },
 
-    // NIÑOS
-    { keywords: ["mi hijo", "mi niña", "mi bebé"], respuesta: "El cuidado infantil requiere atención especial. ¿Qué síntoma o preocupación tiene tu pequeño?" },
-
-    // AGRADECIMIENTOS
-    { keywords: ["gracias", "te agradezco"], respuesta: "¡Con mucho gusto! 💙 Estoy aquí para ayudarte." },
-
-    // RESPUESTA GENERAL
-    { keywords: [], respuesta: "Te entiendo 💛. Cuéntame un poco más para poder darte una orientación clara." }
+    // RESPUESTA DEFAULT
+    { keywords: [], respuesta: "Te escucho 💛. Cuéntame más para poder ayudarte mejor." }
 ];
 
 function obtenerRespuesta(texto) {
@@ -197,9 +180,8 @@ function obtenerRespuesta(texto) {
         }
     }
 
-    return "Te escucho 💛. Cuéntame más para poder ayudarte mejor.";
+    return "Te escucho 💛. Cuéntame un poco más.";
 }
-
 
 // ========================================================
 // ENVÍO DEL MENSAJE
@@ -220,10 +202,8 @@ async function sendMessage() {
     input.disabled = true;
     toggleTypingIndicator(true);
 
-    // Guardar historial
     conversationHistory.push({ role: "user", content: message });
 
-    // IA FALSA — respuesta inmediata
     const respuesta = obtenerRespuesta(message);
 
     setTimeout(() => {
@@ -235,7 +215,6 @@ async function sendMessage() {
             content: respuesta
         });
 
-        // Rehabilitar
         isTyping = false;
         sendBtn.disabled = false;
         input.disabled = false;
@@ -246,16 +225,6 @@ async function sendMessage() {
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DigiCare Twin cargado correctamente");
-
     const userInput = document.getElementById('userInput');
     if (userInput) userInput.focus();
-});
-
-
-
-const toggle = document.querySelector('.mobile-toggle');
-const menu = document.querySelector('.nav-menu');
-
-toggle.addEventListener('click', () => {
-    menu.classList.toggle('active');
 });
